@@ -22,21 +22,26 @@ class Users(Resource):
     
     def post(self):
         request_obj = request.get_json()
+
         try:
-            new_user = User(
-                username =request_obj["username"],
-                email =request_obj["email"],
-                _password_hash =request_obj["_password_hash"],
-            )
-            db.session.add(new_user)
-            db.session.commit()
-            session['user_id'] = new_user.id
-            #this session shit is new. eveything else works fo sho
+            username = request_obj['username']
+            password = request_obj['password']
+            email = request_obj['email']
+            if username and password:
+                new_user = User(username=username, email=email)
+                new_user.password_hash = password
+
+                db.session.add(new_user)
+                db.session.commit()
+
+                session['user_id'] = new_user.id
+
+                # return new_user.to_dict(), 201
         except Exception as e:
             message = {'errors': [e.__str__()]}
             return make_response(message, 422)
         
-        return make_response(new_user.to_dict(),200)
+        return make_response(new_user.to_dict(),201)
     
 api.add_resource(Users, '/users')
 
