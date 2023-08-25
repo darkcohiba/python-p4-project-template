@@ -22,14 +22,14 @@ class Users(Resource):
     
     def post(self):
         request_obj = request.get_json()
-
+        print(request_obj)
         try:
             username = request_obj['username']
             password = request_obj['password']
             email = request_obj['email']
             if username and password:
-                new_user = User(username=username, email=email)
-                new_user.password_hash = password
+                new_user = User(username=username, password_hash=password, email=email)
+                # new_user.password_hash = password
 
                 db.session.add(new_user)
                 db.session.commit()
