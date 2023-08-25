@@ -19,11 +19,12 @@ function App() {
     return <div>Loading...</div>;
   }
   
-  function handleLogout(){
+  const handleLogout = function() {
     fetch('/api/logout', {
       method: 'DELETE', 
     })
   }
+  
   return (
     <>
       <div>Session Data: {JSON.stringify(data)}</div>
