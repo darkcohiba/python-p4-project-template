@@ -15,3 +15,14 @@ if __name__ == '__main__':
     with app.app_context():
         print("Starting seed...")
         # Seed code goes here!
+
+        def create_users():
+            users = []
+            for _ in range(15):
+                u = User(
+                    username = fake.name(),
+                    email = fake.email(),
+                    password_hash = "123", 
+                )
+                users.append(u)
+            return users
