@@ -19,10 +19,14 @@ if __name__ == '__main__':
         # Seed code goes here!
 
         print("deleting data")
+        db.drop_all()
+        db.create_all()
         # db.session.delete(User.query.all())
         # db.session.delete(Trip.query.all())
         # db.session.delete(Signup.query.all())
-        # db.session.commit()
+        # db.session.delete(TripComment.query.all())
+        # db.session.delete(CommunityComment.query.all())
+        db.session.commit()
 
         print("seeding users")
         users = []
@@ -31,7 +35,7 @@ if __name__ == '__main__':
                 username = fake.user_name(),
                 age = randint(18, 65),
                 location = fake.city(),
-                distance_traveled = randint(10, 1000),
+                distance_traveled = random.uniform(10, 1000),
                 personal_bio = fake.text(max_nb_chars=100),
             )
             user.password_hash = fake.password()

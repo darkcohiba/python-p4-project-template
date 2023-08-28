@@ -7,7 +7,7 @@ from flask import request, make_response
 from flask_restful import Resource, Api
 
 # Local imports
-from config import app, api
+from config import app, api, db
 
 # Add your model imports
 from models import User,Trip, Signup, TripComment, CommunityComment
@@ -25,6 +25,19 @@ class Users(Resource):
         users = [u.to_dict() for u in User.query.all()]
         return users, 200
 api.add_resource(Users, '/users')
+
+class UserById(Resource):
+    def get(self, id):
+        user = User.query.filter_by(id=id).first()
+        return user.to_dict(), 200
+    def patch(self, id):
+        data = request.get_json()
+        user = User.query.filter_by(id=id).first()
+        # need to work on patch funcionality
+        db.session.add(user)
+        db.session.commit()
+        return user.to_dict(), 200
+api.add_resource(UserById, '/users/<int:id>')
 
 class Trips(Resource):
     def get(self):

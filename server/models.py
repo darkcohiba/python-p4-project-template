@@ -13,11 +13,11 @@ class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String)
-    _password_hash = db.Column(db.String)
-    age = db.Column(db.Integer)
-    location = db.Column(db.String)
-    distance_traveled = db.Column(db.Integer)
+    username = db.Column(db.String, nullable=False, unique=True)
+    _password_hash = db.Column(db.String, nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    location = db.Column(db.String, nullable=False)
+    distance_traveled = db.Column(db.Float, nullable=False)
     personal_bio = db.Column(db.String)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
@@ -25,6 +25,25 @@ class User(db.Model, SerializerMixin):
     signups = db.relationship("Signup", cascade="all,delete-orphan", backref="users")
     trip_comments = db.relationship("TripComment", cascade="all,delete-orphan", backref="users")
     community_comments = db.relationship("CommunityComment", cascade="all, delete-orphan", backref="users")
+
+    @validates("username")
+    def validate_username(self, key, value):
+        usernames = User.query.with_entities(User.username).all()
+        if not value and value in usernames:
+            raise ValueError("Username must be unique")
+        return value
+
+    @validates("personal_bio")
+    def validate_personal_bio(self, key, value):
+        if len(value) < 0 and len(value) > 500:
+            raise ValueError("Persoal bio must be between 0 and 500 characters")
+        return value
+
+    @validates("age")
+    def validate_age(self, key, value):
+        if value < 0 and value > 100:
+            raise ValueError("Age must be between 0 and 100")
+        return value
 
     serialize_rules = ("-signups.users", "-trip_comments.users", "-community_comments.users",)
     @hybrid_property
@@ -51,18 +70,24 @@ class Trip(db.Model, SerializerMixin):
     __tablename__ = 'trips'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    owner_id = db.Column(db.Integer)
+    name = db.Column(db.String, nullable=False)
+    owner_id = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String)
-    location = db.Column(db.String)
-    distance = db.Column(db.Integer)
-    time_start = db.Column(db.DateTime)
-    time_end = db.Column(db.DateTime)
+    location = db.Column(db.String, nullable=False)
+    distance = db.Column(db.Float, nullable=False)
+    time_start = db.Column(db.DateTime, nullable=False)
+    time_end = db.Column(db.DateTime, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     signups = db.relationship("Signup", cascade="all, delete-orphan", backref="trips")
     trip_comments = db.relationship("TripComment", cascade="all, delete-orphan", backref="trips")
+
+    @validates("description")
+    def validate_description(self, key, value):
+        if len(value) < 0 and len(value) > 1500:
+            raise ValueError("Description must be between 0 and 1500 characters")
+        return value
 
     serialize_rules = ("-signups.trips","-trip_comments.trips",)
 
@@ -81,11 +106,17 @@ class TripComment(db.Model, SerializerMixin):
     __tablename__ = 'trip_comments'
 
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String)
+    content = db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'))
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+
+    @validates("content")
+    def validate_content(self, key, value):
+        if len(value) < 0 and len(value) > 500:
+            raise ValueError("Content must be between 0 and 500 characters")
+        return value
 
     serialize_rules = ("-users.trip_comments", "-trips.trip_comments","-users.signups", "-trips.signups",)
 
@@ -93,9 +124,15 @@ class CommunityComment(db.Model, SerializerMixin):
     __tablename__ = 'community_comments'
 
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String)
+    content = db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+    
+    @validates("content")
+    def validate_content(self, key, value):
+        if len(value) < 0 and len(value) > 500:
+            raise ValueError("Content must be between 0 and 500 characters")
+        return value
 
     serialize_rules = ("-users.community_comments",)
