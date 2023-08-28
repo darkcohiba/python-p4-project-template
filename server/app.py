@@ -10,7 +10,7 @@ from flask_restful import Resource, Api
 from config import app, api
 
 # Add your model imports
-from models import User,Trip, Signup
+from models import User,Trip, Signup, TripComment, CommunityComment
 
 api = Api(app)
 # Views go here!
@@ -37,6 +37,18 @@ class Signups(Resource):
         signups = [s.to_dict() for s in Signup.query.all()]
         return signups, 200
 api.add_resource(Signups, '/signups')
+
+class TripComments(Resource):
+    def get(self):
+        comments = [c.to_dict() for c in TripComment.query.all()]
+        return comments, 200
+api.add_resource(TripComments, '/tripcomments')
+
+class CommunityComments(Resource):
+    def get(self):
+        comments = [c.to_dict() for c in CommunityComment.query.all()]
+        return comments, 200
+api.add_resource(CommunityComments, '/communitycomments')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

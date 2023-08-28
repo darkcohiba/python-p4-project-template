@@ -23,8 +23,10 @@ class User(db.Model, SerializerMixin):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     signups = db.relationship("Signup", cascade="all,delete-orphan", backref="users")
+    trip_comments = db.relationship("TripComment", cascade="all,delete-orphan", backref="users")
+    community_comments = db.relationship("CommunityComment", cascade="all, delete-orphan", backref="users")
 
-    serialize_rules = ("-signups.users",)
+    serialize_rules = ("-signups.users", "-trip_comments.users", "-community_comments.users",)
     @hybrid_property
     def password_hash(self):
         raise Exception("Password hashes may not be viewed")
@@ -60,8 +62,9 @@ class Trip(db.Model, SerializerMixin):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     signups = db.relationship("Signup", cascade="all, delete-orphan", backref="trips")
+    trip_comments = db.relationship("TripComment", cascade="all, delete-orphan", backref="trips")
 
-    serialize_rules = ("-signups.trips",)
+    serialize_rules = ("-signups.trips","-trip_comments.trips",)
 
 class Signup(db.Model, SerializerMixin):
     __tablename__ = 'signups'
@@ -72,4 +75,27 @@ class Signup(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
-    serialize_rules = ("-users.signups", "-trips.signups",)
+    serialize_rules = ("-users.signups", "-trips.signups","-users.trip_comments", "-trips.trip_comments",)
+
+class TripComment(db.Model, SerializerMixin):
+    __tablename__ = 'trip_comments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'))
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+
+    serialize_rules = ("-users.trip_comments", "-trips.trip_comments","-users.signups", "-trips.signups",)
+
+class CommunityComment(db.Model, SerializerMixin):
+    __tablename__ = 'community_comments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+
+    serialize_rules = ("-users.community_comments",)
